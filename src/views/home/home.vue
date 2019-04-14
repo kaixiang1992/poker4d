@@ -1,0 +1,449 @@
+<template>
+    <section class="home">
+        <!-- 
+            lotteryinfo
+                dragonColor: "red"
+                dragonNumbertype: "odd"
+                dragondesc: "红桃K"
+                dragonvalue: "211"
+                result: "tigerWin"
+                resultstatus: 2 // 1龙 2 虎 3和
+                tigerColor: "black"
+                tigerNumbertype: "even"
+                tigerdesc: "樱花10"
+                tigervalue: "308"
+         -->
+        <!-- 展示本轮扑克牌 -->
+        <div class="poker_result">
+            <template v-if="!account">
+                <div class="poker_lfresult"></div>
+                <div class="poker_rtresult"></div>
+            </template>
+            <template v-else>
+                <div class="poker_lfresult">
+                    <span v-if="lotteryinfo.dragondesc" v-html="lotteryinfo.dragondesc"></span>
+                </div>
+                <div class="poker_rtresult">
+                    <span v-if="lotteryinfo.tigerdesc" v-html="lotteryinfo.tigerdesc"></span>
+                </div>
+            </template>
+        </div>
+        <!-- TODO: 下注金额 -->
+        <div class="bet">
+            <div class="bet_amount">
+                <div class="bet_title">
+                    <span>投入金额：</span>
+                    <!-- TODO:下注开奖倒计时 -->
+                    <div class="countdown-box" v-if="betstatus">
+                        <span v-if="betstatus == 1">下注倒计时：</span>
+                        <span v-if="betstatus == 2">开奖倒计时：</span>
+                        <vac ref="sendSMSCode" tag="span" :left-time="countdown" v-if="countdown"
+                        @onFinish="(vac) => finish(vac)">
+                            <span slot="process" slot-scope="{ timeObj }" class="countdown">{{ timeObj.h }}:{{ timeObj.m }}:{{ timeObj.s }}s</span>
+                        </vac>
+                    </div>
+                </div> 
+                <div class="bet_body">
+                    <div class="bet_amount_option">
+                        <input type="number" v-model="amountInput" class="bet_amount_input"> 
+                        <div class="bet_coin_name">EOS</div>
+                    </div> 
+                    <div class="bet_amount_multiple" @click="changebetamount(0.5)">1/2</div> 
+                    <div class="bet_amount_multiple" @click="changebetamount(2)">x2</div> 
+                    <div class="bet_amount_multiple bet_amount_all"  @click="changebetamount('all')">全部</div>
+                </div>
+            </div>
+        </div>
+        <!-- 扑克下注面板 -->
+        <div class="poker_panel">
+            <div class="poker-betroutine">
+                <div class="poker-betbigoptions">
+                    <div class="poker-betrange" :class="{active: bet.typeenum == 1}" @click="changebettype(1, 1)">
+                        <span>龙赢</span>
+                        <em>1赔1</em>
+                    </div>
+                </div>
+                <div class="poker-betbigoptions middle">
+                    <div class="poker-betrange" :class="{active: bet.typeenum == 6}" @click="changebettype(6, 8)">
+                        <span>和</span>
+                        <em>1赔8</em>
+                    </div>
+                </div>
+                <div class="poker-betbigoptions">
+                    <div class="poker-betrange" :class="{active: bet.typeenum == 7}" @click="changebettype(7, 1)">
+                        <span>虎赢</span>
+                        <em>1赔1</em>
+                    </div>
+                </div>
+            </div>
+            <div class="poker-morebet">
+                <div class="poker-morebetlf">
+                    <div class="poker-morebet-item" :class="{active: bet.typeenum == 3}" @click="changebettype(3, 0.75)">
+                        <span>龙单</span>
+                        <em>0.75x</em>
+                    </div>
+                    <div class="poker-morebet-item" :class="{active: bet.typeenum == 2}" @click="changebettype(2, 1.05)"> 
+                        <span>龙双</span>
+                        <em>1.05x</em>
+                    </div>
+                    <div class="poker-morebet-item" :class="{active: bet.typeenum == 4}" @click="changebettype(4, 0.9)">
+                        <span>龙黑</span>
+                        <em>0.9x</em>
+                    </div>
+                    <div class="poker-morebet-item" :class="{active: bet.typeenum == 5}" @click="changebettype(5, 0.9)">
+                        <span>龙红</span>
+                        <em>0.9x</em>
+                    </div>
+                </div>
+                <div class="poker-morebetrt">
+                    <div class="poker-morebet-item" :class="{active: bet.typeenum == 8}" @click="changebettype(8, 1.05)">
+                        <span>虎双</span>
+                        <em>1.05x</em>
+                    </div>
+                    <div class="poker-morebet-item" :class="{active: bet.typeenum == 9}" @click="changebettype(9, 0.75)">
+                        <span>虎单</span>
+                        <em>0.75x</em>
+                    </div>
+                    <div class="poker-morebet-item" :class="{active: bet.typeenum == 11}" @click="changebettype(11, 0.9)">
+                        <span>虎红</span>
+                        <em>0.9x</em>
+                    </div>
+                    <div class="poker-morebet-item" :class="{active: bet.typeenum == 10}" @click="changebettype(10, 0.9)">
+                        <span>虎黑</span>
+                        <em>0.9x</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- TODO: 开始下注 -->
+        <div class="start_gamebtn">
+            <button v-if="!account"><span>登 录</span></button>
+            <button v-else :disabled="bet.disabled" :class="{disabled: bet.disabled}" @click="doAction">
+                <span>投注</span> 
+                <span class="user_banlance">余额：<em v-html="currentEOS"></em><em>EOS</em></span>
+            </button>
+        </div>
+    </section>
+</template>
+<script>
+import { mapGetters } from "vuex";
+import Eos from 'eosjs';
+import { numToString, fixed, changeamount, randomID, changeDecimalBuZero } from '@/utils/math.js';
+import config from '@/utils/network';
+import card_map from '@/utils/config';
+export default {
+    name: 'home',
+    computed: {
+        amountInput: {// 下注金额
+            get() {
+                if (!isNaN(Number(this.bet.amount))) {
+                    return numToString(this.bet.amount);
+                } else {
+                    return 0
+                }
+            },
+            set(v) {
+                if (!isNaN(Number(v))) {
+                    if (v < 0 || v == '' || v == null) v = 0;
+                    if(v&&v.indexOf('.')!=-1){
+                        let decimal=v.split('.')[1];
+                        if(decimal.length>4){
+                            this.bet.amount = fixed(v, 4); 
+                        }else{
+                            this.bet.amount = v; 
+                        }
+                    }else{
+                       this.bet.amount = v; 
+                    }
+                } else {
+                    this.bet.amount = 0;
+                }
+            }
+        },
+        ...mapGetters(['currentEOS','account'])
+    },
+    watch: {
+        account(val,old){
+            if(val){
+                this.getnextgameid();
+            }
+        }  
+    },
+    data () {
+        return {
+            betId: null, // TODO: 当前下注betID    
+            betstatus: null, //TODO: 1下注，2开奖倒计时
+            countdown: null, //TODO: 倒计时
+            cardMapArray: null, //TODO: 扑克数组
+            bet: {
+                amount: 1,
+                typeenum: 1,
+                randomstr: null,
+                disabled: false
+            },
+            lotteryinfo: { //TODO: 开奖信息
+                result: '', //TODO: 开奖结果
+                resultstatus: 0, //TODO: 开奖结果状态码
+                dragonvalue: '', //TODO: 龙牌value
+                dragondesc: '', //TODO: 龙牌描述
+                dragonColor: '', //TODO: 龙牌颜色
+                dragonNumbertype: '', //TODO: 龙牌单双
+                tigervalue: '', //TODO: 虎牌value
+                tigerdesc: '', //TODO: 虎牌描述
+                tigerColor: '', //TODO: 虎牌颜色
+                tigerNumbertype: '' //TODO: 虎牌单双
+            }
+        }
+    },
+    created () {
+        this.cardMapArray = Array.from(card_map);
+        this.bet.randomstr = randomID();
+    },
+    methods: {
+        /**
+         * @description 快捷改变下注额
+         */
+        changebetamount(val){ 
+            if(val=='all'){
+                if(this.account){ //已登录
+                    this.bet.amount = parseFloat(fixed(this.currentEOS, 4));
+                }else{
+                    this.$toast.fail('请先登录');
+                }
+            }else{
+                this.bet.amount = parseFloat(fixed(changeamount(this.bet.amount, val, '*', 0), 4));
+            }
+        },
+        /**
+         * @description 快捷改变下注项
+         */
+        changebettype(type, odds){
+            this.bet.typeenum = type;
+        },
+        /**
+         * @description 获取当前下注ID
+         */
+        async getnextgameid(){
+            const eos = scatter.eos(config.network, Eos, {});
+            try {
+                let res = await eos.getTableRows({ 
+                    "scope": config.contractName, 
+                    "code": config.contractName, 
+                    "table":"vardic", 
+                    "json": true
+                });
+                if(res.rows && res.rows.length){
+                    let findbetiditem = res.rows.find( item => item.id == 6);
+                    if(findbetiditem){
+                        this.betId = parseInt(findbetiditem.value - 1);
+                    }else{
+                        this.betId = 1;
+                    }
+                    this.getgamedetails();
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        /**
+         * @description 获取游戏详情
+         */
+        async getgamedetails(){
+            const eos = scatter.eos(config.network, Eos, {});
+            let currentgame = await  eos.getTableRows({ 
+                "scope": config.contractName, 
+                "code": config.contractName, 
+                "table":"game", 
+                "lower_bound": this.betId,
+                "limit": 10,
+                "json": true
+            });
+            if(currentgame.rows && currentgame.rows.length){
+                let currentgameinfo = currentgame.rows[0];
+                // TODO: 开奖阶段
+                if(currentgameinfo.game_status == 2){
+                    this.bet.disabled = true;
+                    this.betstatus = 2;
+                    let diff = Number(currentgameinfo.reveal_time) - Number(currentgameinfo.bet_end_time);
+                    this.computedresult(currentgameinfo.card_number1, currentgameinfo.card_number2);
+                    if(diff > 0 ){
+                        this.countdown = diff * 1000;
+                    }else{
+                        this.countdown = 0;
+                    }
+                }
+                // TODO: 下注阶段
+                if(currentgameinfo.game_status == 1){
+                    this.bet.disabled = false;
+                    this.betstatus = 1;
+                    let diff = Number(currentgameinfo.bet_end_time) - Number(currentgameinfo.create_time);
+                    if(diff > 0){
+                        this.countdown = diff * 1000;
+                    }else{
+                        this.countdown = 0;
+                    }
+                }
+            }
+        },
+        /**
+         * @description 下注功能
+         */
+        doAction(){ //下注
+            if(!this.account){
+                this.$toast.fail('请先登录');
+                return 
+            }else{
+                if(this.bet.amount == '' || this.bet.amount == null || isNaN(Number(this.bet.amount)) || !isFinite(Number(this.bet.amount))){
+                    this.$toast('请输入投注金额');
+                    return
+                }
+                if(Number(this.bet.amount) <= 0.1){
+                    this.$toast('投注金额>0.1EOS');
+                    return
+                }
+                if(Number(this.bet.amount) > Number(this.currentEOS)){
+                    this.$toast(`最大下注${this.currentEOS}EOS`);
+                    return
+                }
+                let quantity = parseFloat(fixed(this.bet.amount, 4));
+                quantity = changeDecimalBuZero(quantity, 4);
+                let betopt = {
+                    from: this.account.name, 
+                    to: config.contractName, //gentelmen123、gentlemen123
+                    quantity: `${quantity} EOS`,
+                    memo: `gamebet:${this.betId}:${this.bet.typeenum}:${this.bet.randomstr}` 
+                }
+                console.log('下注参数.....');
+                console.log(betopt);
+                const eos = scatter.eos(config.network, Eos, {});
+                this.bet.disabled = true;
+                eos.transfer(betopt).then((res) => {
+                    if(res.broadcast){
+                        this.getBetresult();
+                    }else{
+                        this.bet.disabled = false;
+                    }
+                }).catch((err) => {
+                    this.$toast('下注异常或用户取消');
+                    this.bet.disabled = false;
+                    console.log(err);
+                });
+            }
+        },
+        /**
+         * @description 获取投注结果
+         */
+        getBetresult(){
+            const eos = scatter.eos(config.network, Eos, {});
+            eos.getTableRows({
+                "scope": config.contractName, 
+                "code": config.contractName,
+                "table": "bet", 
+                "lower_bound":4,
+                "limit": 50,
+                "json": true})
+            .then((res) => {
+                console.log('获取投注结果....');
+                console.log(res);
+                this.bet.disabled = false;
+            }).catch((err) => {
+                console.log(err);
+            });
+        },
+        /**
+         * @description 倒计时
+         */
+        finish(vac){
+            if(this.betstatus == 1){
+                this.getgamedetails();
+            }else{
+                this.bet.randomstr = randomID();
+                this.resetlotteryinfo();
+                this.getnextgameid();
+            }
+            this.betstatus = null; //TODO: 1下注，2开奖倒计时
+            this.countdown = null; //TODO: 倒计时
+        },
+        /**
+         * @description 计算开奖结果
+         * @param {Number} card_number1
+         * @param {Number} card_number2
+         */
+        computedresult(card_number1, card_number2){
+            this.lotteryinfo.dragonvalue = this.cardMapArray[card_number1][0];
+            this.lotteryinfo.dragondesc = `${this.cardMapArray[card_number1][1].card_color_desc}${this.cardMapArray[card_number1][1].card_value}`;
+            this.lotteryinfo.tigervalue = this.cardMapArray[card_number2][0];
+            this.lotteryinfo.tigerdesc = `${this.cardMapArray[card_number2][1].card_color_desc}${this.cardMapArray[card_number2][1].card_value}`;
+            let dragon_value = Math.floor(this.cardMapArray[card_number1][0] % 100);
+            let dragon_color = Math.floor(this.cardMapArray[card_number1][0] / 100);
+            let tiger_value = Math.floor(this.cardMapArray[card_number2][0] % 100);
+            let tiger_color = Math.floor(this.cardMapArray[card_number2][0] / 100);
+            // TODO: 判断输赢 和
+            if (dragon_value < tiger_value) {
+                this.lotteryinfo.result = 'dragonWin'; //TODO: 龙赢
+                this.lotteryinfo.resultstatus = 1;
+            }else if (dragon_value == tiger_value) {
+                if (dragon_color < tiger_color) { 
+                    this.lotteryinfo.result = 'dragonWin'; //TODO: 龙赢
+                    this.lotteryinfo.resultstatus = 1;
+                } else if (dragon_color == tiger_color) { 
+                    this.lotteryinfo.result = 'same'; //TODO: 和
+                    this.lotteryinfo.resultstatus = 3;
+                } else { 
+                    this.lotteryinfo.result = 'tigerWin'; //TODO: 和
+                    this.lotteryinfo.resultstatus = 2;
+                } 
+            }else { 
+                this.lotteryinfo.result = 'tigerWin'; //TODO: 和
+                this.lotteryinfo.resultstatus = 2;
+            } 
+            // TODO: 判断颜色
+            if (dragon_color == 1 || dragon_color == 3) {
+                this.lotteryinfo.dragonColor = 'black';
+            } else { 
+                this.lotteryinfo.dragonColor = 'red';
+            } 
+            if (tiger_color == 1 || tiger_color == 3) { 
+                this.lotteryinfo.tigerColor = 'black';
+            } else { 
+                this.lotteryinfo.tigerColor = 'red';
+            } 
+            // TODO: 判断单双
+            if (dragon_value % 2 == 1 || dragon_value == 12) { 
+                this.lotteryinfo.dragonNumbertype = 'odd';
+            } else { 
+                this.lotteryinfo.dragonNumbertype = 'even';
+            } 
+            if (tiger_value % 2 == 1 || tiger_value == 12) { 
+                this.lotteryinfo.tigerNumbertype = 'odd';
+            } else { 
+                this.lotteryinfo.tigerNumbertype = 'even';
+            } 
+        },
+        /**
+         * @description 重置开奖信息
+         */
+        resetlotteryinfo(){
+            this.lotteryinfo = Object.assign(this.lotteryinfo, {
+                result: '', 
+                resultstatus: 0, 
+                dragonvalue: '',
+                dragondesc: '',
+                dragonColor: '',
+                dragonNumbertype: '',
+                tigervalue: '',
+                tigerdesc: '',
+                tigerColor: '',
+                tigerNumbertype: ''
+            });
+        }
+    },
+    components: {
+        'FooterBet': () => import('@/base/footerbet/footerbet.vue')
+    }
+}
+</script>
+<style lang="stylus">
+@import '../../stylus/home.styl';
+</style>
+

@@ -1,0 +1,43 @@
+@import '../../stylus/variable.styl';
+.app-header
+    position: fixed
+    top: 0px
+    left: 0px
+    right: 0px
+    z-index: 99
+    flex_row_between()
+    width: 100%
+    height: 1.07rem
+    background-color: #262335
+    padding: 0px 0px 0px 0.37rem
+    .app-header-logo
+        width: 2.11rem
+    .afterlogin,.app-header-left
+        display: flex
+        flex-direction: row
+        align-items: center
+    .nologin
+        font-size: 0.37rem
+        color: #fff
+    .afterlogin
+        img 
+            width: 0.52rem
+            margin-right: 0.23rem
+        .username
+            display: inline-block
+            overflow: hidden
+            white-space: nowrap
+            text-overflow: ellipsis
+            font-size: 0.32rem
+            color: #fff
+    .app-header-menu
+        absolute_center()
+        width: 1.28rem
+        height: 100%
+        &.active
+            background-color: #4b4660
+            i 
+                color: #e55c7e
+        i 
+            font-size: 0.53rem
+            color: #fff

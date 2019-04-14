@@ -1,0 +1,177 @@
+.home
+    padding: 0.32rem 0.37rem 0.79rem
+.poker_result
+    display: flex
+    flex-direction: row
+    align-items: center
+    margin-bottom: 0.32rem
+    justify-content: space-between
+    width: 100%
+    height: 2.2rem
+    padding: 0.2rem
+    border: 1px solid #777
+    border-radius: 0.08rem
+    &>div
+        flex: 1
+        height: 100%
+        display: flex
+        align-items: center
+        justify-content: center
+        &:first-child
+            border-right: 1px solid #777
+.bet
+    margin: 0.52rem 0px
+.bet_amount
+    display: flex 
+    width: 100%
+    flex-direction: column
+.bet_title
+    display: flex
+    align-items: center
+    flex-direction: row
+    justify-content: space-between
+    margin-bottom: .27rem
+    span    
+        color #7d769a
+.bet_body 
+    display: flex 
+    flex-direction: row
+    align-items: center
+    justify-content: space-between
+    width: 100%
+    height: 1.71rem
+    padding: .13rem
+    background-color: #4b4660
+    border-radius: .19rem
+    .bet_amount_option 
+        width: 5.39rem
+        display: flex
+        flex-direction: row
+        align-items: center
+        justify-content: space-between
+        height: 1.44rem
+        padding: .19rem .33rem .19rem .27rem
+        background-color: #262335
+        border-radius: .13rem
+        input 
+            flex: 1
+            height: 100%
+            padding: 0 .13rem
+            font-size: .53rem
+            color: #fff
+            min-width: 60px
+    .bet_amount_multiple 
+        width: 1.07rem
+        height: 100%
+        border-radius: .13rem
+        font-size: .37rem
+        display: flex;
+        justify-content: center
+        align-items: center
+        color: #908ba9
+    .bet_amount_multiple:not(.bet_amount_all):active 
+        background-color: #3c3656
+    .bet_amount_multiple.bet_amount_all
+        color: #4b4660;
+        background-image: linear-gradient(0deg,#ffad2b,#ffd926)
+        box-shadow: 0 0.07rem 0.04rem 0 rgba(65,57,96,.82), inset 0 0.04rem 0 0 hsla(0,0%,100%,.35)
+.poker_panel
+    width: 100%
+    padding: 0.4rem 0.32rem
+    background-color: #4b4660
+    border-radius: 0.08rem
+    .poker-betroutine
+        display: flex
+        flex-direction: row
+        align-items: center
+        .poker-betbigoptions
+            width: 32%
+            display: flex
+            flex-direction: column
+            align-items: center
+            &.middle
+                margin: 0px 2%
+            .poker-betodds
+                color: #7d769a
+                font-size: 0.32rem
+                margin-bottom: 0.32rem
+                em
+                    color: #fff
+        .poker-betrange
+            width: 1.86rem
+            height: 1.86rem
+            background-color: #262335
+            display: flex
+            flex-direction: column
+            align-items: center
+            justify-content: center
+            margin-bottom: 0.32rem
+            border-radius: 0.08rem
+            color: #ffffff
+            span
+                font-size: 0.58rem
+            em
+                font-size: 0.32rem
+            &.active,&:active
+                background-color: #3c3656
+.poker-morebet
+    width: 100%
+    display: flex
+    flex-direction: row
+    align-items: center
+    justify-content: space-between
+    &>div
+        width: 48%
+        display: flex
+        flex-direction: row
+        flex-wrap: wrap
+        background-color: #262335
+        border-radius: 0.08rem
+        overflow: hidden
+    .poker-morebet-item
+        width: 50%
+        height: 1.86rem
+        display: flex
+        justify-content: center
+        align-items: center
+        flex-direction: column
+        font-size: 0.4rem
+        color: #ffffff
+        em
+            font-size: 0.32rem
+        &.active,&:active
+            background-color: #3c3656
+        &:nth-child(odd)
+            border-right: 1px solid #777
+        &:nth-child(1),&:nth-child(2)
+            border-bottom: 1px solid #777
+.start_gamebtn
+    padding-top: 0.52rem
+    width: 100%
+    display: flex
+    align-items: center
+    flex-direction: column
+    button
+        position: relative
+        display: flex
+        justify-content: center
+        align-items: center
+        flex-direction: column
+        width: 6rem
+        height: 1.71rem
+        background-image: linear-gradient(0deg,#1f32de,#3551ff)
+        box-shadow: 0 0.07rem 0.04rem 0 rgba(40,35,62,.82), inset 0 0.04rem 0 0 rgba(160,170,255,.35)
+        border-radius: .85rem
+        margin-bottom: .4rem;
+        cursor: pointer
+        span:first-child
+            font-size: .53rem
+            line-height: .56rem
+            color: #fff
+        .user_banlance
+            margin-top: .25rem
+            font-size: .32rem
+            line-height: .56rem
+            color: #6cfdff
+        &.disabled
+            background-image: linear-gradient(0deg, #666, #777)
