@@ -2,16 +2,13 @@
     <header class="app-header">
         <div class="app-header-left">
             <div class="nologin" @click="login" v-if="!account">登录</div>
-            <div class="afterlogin" v-else>
+            <div class="afterlogin" v-else @click="moremenu">
                 <img src="http://test.gdice.ppset.com.cn/Gdice/m_images/useravatar.png" alt="头像" class="img-response"/>
                 <span class="username" v-html="account.name"></span>
                 <!-- <span class="username">,{{currentEOS}} EOS</span> -->
             </div>
         </div>
-        <!-- <div class="app-header-logo">
-            <img src="https://www.gdice.one/Gdice/images/logo.png" alt="Gdice" class="img-response"/>
-        </div> -->
-        <div class="app-header-menu">
+        <div class="app-header-menu" @click="moremenu">
             <i class="icon iconfont icon-menu-two"></i>
         </div>
     </header>
@@ -38,6 +35,15 @@ export default {
                 });
             }).catch(e => {
                 console.log(e);
+            });
+        },
+        /**
+         * @description 退出登录等菜单
+         */
+        moremenu(){
+            this.$emit('success', {
+                methodsName: 'moremenu',
+                data: true
             });
         },
         ...mapActions(['change_account'])

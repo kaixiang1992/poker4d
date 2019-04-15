@@ -1,30 +1,43 @@
 <template>
     <section class="home">
-        <!-- 
-            lotteryinfo
-                dragonColor: "red"
-                dragonNumbertype: "odd"
-                dragondesc: "红桃K"
-                dragonvalue: "211"
-                result: "tigerWin"
-                resultstatus: 2 // 1龙 2 虎 3和
-                tigerColor: "black"
-                tigerNumbertype: "even"
-                tigerdesc: "樱花10"
-                tigervalue: "308"
-         -->
+       
+        <!-- TODO: 本轮开奖通告 -->
+        <div class="notice-box">
+            <van-notice-bar color="#ffd926" :text="lotteryinfotext" left-icon="volume-o" />
+        </div>
         <!-- 展示本轮扑克牌 -->
         <div class="poker_result">
             <template v-if="!account">
-                <div class="poker_lfresult"></div>
-                <div class="poker_rtresult"></div>
+                <div class="poker_lfresult">
+                    <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg" alt="">
+                </div>
+                <div class="poker_rtresult">
+                    <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg" alt="">
+                </div>
             </template>
             <template v-else>
                 <div class="poker_lfresult">
-                    <span v-if="lotteryinfo.dragondesc" v-html="lotteryinfo.dragondesc"></span>
+                     <!-- 
+                        lotteryinfo
+                            dragonColor: "red"
+                            dragonNumbertype: "odd"
+                            dragondesc: "红桃K"
+                            dragonvalue: "211"
+                            result: "tigerWin"
+                            resultstatus: 2 // 1龙 2 虎 3和
+                            tigerColor: "black"
+                            tigerNumbertype: "even"
+                            tigerdesc: "樱花10"
+                            tigervalue: "308"
+                    -->
+                    <!-- <span v-if="lotteryinfo.dragondesc" v-html="lotteryinfo.dragondesc"></span> -->
+                    <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg pokerunopened" alt="" v-show="!lotteryinfo.dragonvalue"/>
+                    <img :src="'http://www.poker4d.club/poker/'+lotteryinfo.dragonvalue+'.jpg'" class="pokerbg pokerunopened" alt="" v-if="lotteryinfo.dragonvalue"/>
                 </div>
                 <div class="poker_rtresult">
-                    <span v-if="lotteryinfo.tigerdesc" v-html="lotteryinfo.tigerdesc"></span>
+                    <!-- <span v-if="lotteryinfo.tigerdesc" v-html="lotteryinfo.tigerdesc"></span> -->
+                    <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg pokerunopened" alt="" v-show="!lotteryinfo.tigervalue"/>
+                    <img :src="'http://www.poker4d.club/poker/'+lotteryinfo.tigervalue+'.jpg'" class="pokerbg pokerunopened" alt="" v-if="lotteryinfo.tigervalue"/>
                 </div>
             </template>
         </div>
@@ -117,7 +130,7 @@
         </div>
         <!-- TODO: 开始下注 -->
         <div class="start_gamebtn">
-            <button v-if="!account"><span>登 录</span></button>
+            <button v-if="!account" @click.once="login"><span>登 录</span></button>
             <button v-else :disabled="bet.disabled" :class="{disabled: bet.disabled}" @click="doAction">
                 <span>投注</span> 
                 <span class="user_banlance">余额：<em v-html="currentEOS"></em><em>EOS</em></span>
@@ -126,11 +139,12 @@
     </section>
 </template>
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import Eos from 'eosjs';
 import { numToString, fixed, changeamount, randomID, changeDecimalBuZero } from '@/utils/math.js';
 import config from '@/utils/network';
 import card_map from '@/utils/config';
+import mixin from '@/mixin';
 export default {
     name: 'home',
     computed: {
@@ -157,6 +171,33 @@ export default {
                     }
                 } else {
                     this.bet.amount = 0;
+                }
+            }
+        },
+        lotteryinfotext(){
+            if(this.betstatus == 1){
+                if(this.betId){
+                    return `第${this.betId}轮下注中...`;
+                }else{
+                    return '等待中...';
+                }
+            }else{
+                let str = '';
+                if(this.lotteryinfo.resultstatus == 1){
+                    str +=`第${this.betId}轮，龙胜，`;
+                    this.lotteryinfo.dragonNumbertype == 'odd' ?  str +=`龙单数胜，` : str +=`龙双数胜，`;
+                    this.lotteryinfo.dragonColor == 'black' ?  str +=`龙黑色胜` : str +=`龙红色胜`;
+                    return str;
+                }else if(this.lotteryinfo.resultstatus == 2){
+                    str +=`第${this.betId}轮，虎胜，`;
+                    this.lotteryinfo.tigerNumbertype == 'odd' ?  str +=`虎单数胜，` : str +=`虎双数胜，`;
+                    this.lotteryinfo.tigerColor == 'black' ?  str +=`虎黑色胜` : str +=`虎红色胜`;
+                    return str;
+                }else if(this.lotteryinfo.resultstatus == 3){
+                    str +=`第${this.betId}轮，和胜`;
+                    return str;
+                }else{
+                    return '等待中...';
                 }
             }
         },
@@ -199,7 +240,21 @@ export default {
         this.cardMapArray = Array.from(card_map);
         this.bet.randomstr = randomID();
     },
+    mixins: [mixin],
     methods: {
+        login() { //用户登录
+            scatter.getIdentity({
+                accounts: [config.network]
+            }).then(() => {
+                const account = scatter.identity.accounts.find(account => account.blockchain === 'eos');
+                if (!account) return;
+                this.change_account(account).then(() => {
+                    this.getEOS();
+                });
+            }).catch(e => {
+                console.log(e);
+            });
+        },
         /**
          * @description 快捷改变下注额
          */
@@ -297,8 +352,8 @@ export default {
                     this.$toast('请输入投注金额');
                     return
                 }
-                if(Number(this.bet.amount) <= 0.1){
-                    this.$toast('投注金额>0.1EOS');
+                if(Number(this.bet.amount) < 0.1){
+                    this.$toast('投注金额>=0.1EOS');
                     return
                 }
                 if(Number(this.bet.amount) > Number(this.currentEOS)){
@@ -436,7 +491,8 @@ export default {
                 tigerColor: '',
                 tigerNumbertype: ''
             });
-        }
+        },
+        ...mapActions(['change_account'])
     },
     components: {
         'FooterBet': () => import('@/base/footerbet/footerbet.vue')

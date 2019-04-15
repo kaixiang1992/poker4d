@@ -3,8 +3,6 @@ import App from './App';
 import router from './router';
 import store from './store';
 import vueAwesomeCountdown from 'vue-awesome-countdown';
-import ScatterJS from 'scatterjs-core';
-import ScatterEOS from 'scatterjs-plugin-eosjs';
 
 import './stylus/reset.styl';
 

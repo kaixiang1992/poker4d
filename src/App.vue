@@ -1,7 +1,9 @@
 <template>
   <div id="app" class="app">
-    <tabheader></tabheader>
+    <tabheader @success="success"></tabheader>
     <router-view></router-view>
+    <!-- TODO: 退出登录 -->
+    <van-actionsheet v-model="show" :actions="actions" @select="onSelect" />
   </div>
 </template>
 
@@ -11,6 +13,17 @@ import mixin from '@/mixin';
 import tabheader from '@/base/tabheader/tabheader.vue';
 export default {
   name: 'App',
+  data(){
+    return {
+      show: false,
+      actions: [
+        {
+          name: '退出登录',
+          methodsName: 'logout'
+        }
+      ]
+    }
+  },
   mixins: [mixin],
   mounted() {
     this.initaccount();
@@ -28,7 +41,41 @@ export default {
         });
       });
     },
-    ...mapActions(['change_account'])
+    /**
+     * @description 退出登录等菜单
+     */
+    success(obj){
+      switch (obj.methodsName) {
+        case "moremenu":
+        {
+          this.show = obj.data;
+        };
+        break;
+        case "logout": 
+        {
+          scatter.forgetIdentity().then((res) => {
+            this.show = obj.data;
+            this.change_account(null);
+            this.change_currentEOS(0);
+          }).catch((err) => {
+            console.log(err);
+          });
+        };
+        break;
+        default:
+        break;
+      }
+    },
+    /**
+     * @description 退出登录
+     */
+    onSelect(item) {
+      this.success({
+        methodsName: item.methodsName,
+        data: false
+      });
+    },
+    ...mapActions(['change_account', 'change_currentEOS'])
   },  
   components: {
     tabheader
