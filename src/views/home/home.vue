@@ -133,7 +133,7 @@
             <button v-if="!account" @click.once="login"><span>登 录</span></button>
             <button v-else :disabled="bet.disabled" :class="{disabled: bet.disabled}" @click="doAction">
                 <span>投注</span> 
-                <span class="user_banlance">余额：<em v-html="currentEOS"></em><em>EOS</em></span>
+                <span class="user_banlance">余额：<em v-html="betopt.balance"></em><em>{{betopt.coin}}</em></span>
             </button>
         </div>
     </section>
@@ -201,7 +201,7 @@ export default {
                 }
             }
         },
-        ...mapGetters(['currentEOS','account'])
+        ...mapGetters(['betopt','account'])
     },
     watch: {
         account(val,old){
@@ -261,7 +261,7 @@ export default {
         changebetamount(val){ 
             if(val=='all'){
                 if(this.account){ //已登录
-                    this.bet.amount = parseFloat(fixed(this.currentEOS, 4));
+                    this.bet.amount = parseFloat(fixed(this.betopt.balance, 4));
                 }else{
                     this.$toast.fail('请先登录');
                 }
@@ -356,8 +356,8 @@ export default {
                     this.$toast('投注金额>=0.1EOS');
                     return
                 }
-                if(Number(this.bet.amount) > Number(this.currentEOS)){
-                    this.$toast(`最大下注${this.currentEOS}EOS`);
+                if(Number(this.bet.amount) > Number(this.betopt.balance)){
+                    this.$toast(`最大下注${this.betopt.balance}${this.betopt.coin}`);
                     return
                 }
                 let quantity = parseFloat(fixed(this.bet.amount, 4));

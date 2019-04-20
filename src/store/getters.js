@@ -1,6 +1,7 @@
 const getters = {
     account: state => state.account,
-    currentEOS: state => state.currentEOS
+    coin: state => state.betopt.coin,
+    betopt: state => state.betopt
 }
 
 export default getters;

@@ -56,7 +56,9 @@ export default {
           scatter.forgetIdentity().then((res) => {
             this.show = obj.data;
             this.change_account(null);
-            this.change_currentEOS(0);
+            this.change_betopt({
+              balance: 0 //当前余额
+            });
           }).catch((err) => {
             console.log(err);
           });
@@ -75,7 +77,7 @@ export default {
         data: false
       });
     },
-    ...mapActions(['change_account', 'change_currentEOS'])
+    ...mapActions(['change_account', 'change_betopt'])
   },  
   components: {
     tabheader

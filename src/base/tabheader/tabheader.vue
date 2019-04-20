@@ -5,7 +5,6 @@
             <div class="afterlogin" v-else @click="moremenu">
                 <img src="http://test.gdice.ppset.com.cn/Gdice/m_images/useravatar.png" alt="头像" class="img-response"/>
                 <span class="username" v-html="account.name"></span>
-                <!-- <span class="username">,{{currentEOS}} EOS</span> -->
             </div>
         </div>
         <div class="app-header-menu" @click="moremenu">
@@ -20,7 +19,7 @@ import config from '@/utils/network.js';
 export default {
     name: 'app-header',
     computed: {
-        ...mapGetters(['account','currentEOS'])
+        ...mapGetters(['account'])
     },
     mixins: [mixin],
     methods: {
