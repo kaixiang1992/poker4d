@@ -16,11 +16,11 @@ npm run build --report
 # 麒麟测试网
 https://kylin.eosx.io/tools/account/create
 
-# eosjs调用示例
-https://github.com/qq776355102/eos_dapp_development_cn/blob/master/docs/eosjs_manual.md
-
 # eosjs开发文档
 https://github.com/eoshackathon
+
+# eosjs API文档
+https://developers.eos.io/eosio-nodeos/reference
 
 # 倒计时插件
 https://vac.js.org/

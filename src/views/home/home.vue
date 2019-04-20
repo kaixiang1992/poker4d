@@ -17,19 +17,6 @@
             </template>
             <template v-else>
                 <div class="poker_lfresult">
-                     <!-- 
-                        lotteryinfo
-                            dragonColor: "red"
-                            dragonNumbertype: "odd"
-                            dragondesc: "红桃K"
-                            dragonvalue: "211"
-                            result: "tigerWin"
-                            resultstatus: 2 // 1龙 2 虎 3和
-                            tigerColor: "black"
-                            tigerNumbertype: "even"
-                            tigerdesc: "樱花10"
-                            tigervalue: "308"
-                    -->
                     <!-- <span v-if="lotteryinfo.dragondesc" v-html="lotteryinfo.dragondesc"></span> -->
                     <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg pokerunopened" alt="" v-show="!lotteryinfo.dragonvalue"/>
                     <img :src="'http://www.poker4d.club/poker/'+lotteryinfo.dragonvalue+'.jpg'" class="pokerbg pokerunopened" alt="" v-if="lotteryinfo.dragonvalue"/>
@@ -130,7 +117,7 @@
         </div>
         <!-- TODO: 开始下注 -->
         <div class="start_gamebtn">
-            <button v-if="!account" @click.once="login"><span>登 录</span></button>
+            <button v-if="!account" @click="login"><span>登 录</span></button>
             <button v-else :disabled="bet.disabled" :class="{disabled: bet.disabled}" @click="doAction">
                 <span>投注</span> 
                 <span class="user_banlance">余额：<em v-html="betopt.balance"></em><em>{{betopt.coin}}</em></span>
@@ -140,9 +127,7 @@
 </template>
 <script>
 import { mapGetters, mapActions } from "vuex";
-import Eos from 'eosjs';
 import { numToString, fixed, changeamount, randomID, changeDecimalBuZero } from '@/utils/math.js';
-import config from '@/utils/network';
 import card_map from '@/utils/config';
 import mixin from '@/mixin';
 export default {
@@ -201,7 +186,7 @@ export default {
                 }
             }
         },
-        ...mapGetters(['betopt','account'])
+        ...mapGetters(['betopt','account','coin'])
     },
     watch: {
         account(val,old){
@@ -242,19 +227,6 @@ export default {
     },
     mixins: [mixin],
     methods: {
-        login() { //用户登录
-            scatter.getIdentity({
-                accounts: [config.network]
-            }).then(() => {
-                const account = scatter.identity.accounts.find(account => account.blockchain === 'eos');
-                if (!account) return;
-                this.change_account(account).then(() => {
-                    this.getEOS();
-                });
-            }).catch(e => {
-                console.log(e);
-            });
-        },
         /**
          * @description 快捷改变下注额
          */
@@ -279,11 +251,8 @@ export default {
          * @description 获取当前下注ID
          */
         async getnextgameid(){
-            const eos = scatter.eos(config.network, Eos, {});
             try {
-                let res = await eos.getTableRows({ 
-                    "scope": config.contractName, 
-                    "code": config.contractName, 
+                let res = await this.$eosuntil.getTableRows({ 
                     "table":"vardic", 
                     "json": true
                 });
@@ -304,10 +273,7 @@ export default {
          * @description 获取游戏详情
          */
         async getgamedetails(){
-            const eos = scatter.eos(config.network, Eos, {});
-            let currentgame = await  eos.getTableRows({ 
-                "scope": config.contractName, 
-                "code": config.contractName, 
+            let currentgame = await  this.$eosuntil.getTableRows({ 
                 "table":"game", 
                 "lower_bound": this.betId,
                 "limit": 10,
@@ -364,17 +330,16 @@ export default {
                 quantity = changeDecimalBuZero(quantity, 4);
                 let betopt = {
                     from: this.account.name, 
-                    to: config.contractName, //gentelmen123、gentlemen123
-                    quantity: `${quantity} EOS`,
+                    quantity: `${quantity} ${this.coin}`,
                     memo: `gamebet:${this.betId}:${this.bet.typeenum}:${this.bet.randomstr}` 
                 }
                 console.log('下注参数.....');
                 console.log(betopt);
-                const eos = scatter.eos(config.network, Eos, {});
                 this.bet.disabled = true;
-                eos.transfer(betopt).then((res) => {
+                this.$eosuntil.transfer(betopt.from, betopt.quantity, betopt.memo).then((res) => {
                     if(res.broadcast){
                         this.getBetresult();
+                        this.getEOS(this.account.name);
                     }else{
                         this.bet.disabled = false;
                     }
@@ -388,22 +353,20 @@ export default {
         /**
          * @description 获取投注结果
          */
-        getBetresult(){
-            const eos = scatter.eos(config.network, Eos, {});
-            eos.getTableRows({
-                "scope": config.contractName, 
-                "code": config.contractName,
-                "table": "bet", 
-                "lower_bound":4,
-                "limit": 50,
-                "json": true})
-            .then((res) => {
+        async getBetresult(){
+            try {
+                let res = await this.$eosuntil.getTableRows({ 
+                    "table": "bet", 
+                    "lower_bound":4,
+                    "limit": 50,
+                    "json": true
+                });
                 console.log('获取投注结果....');
                 console.log(res);
                 this.bet.disabled = false;
-            }).catch((err) => {
-                console.log(err);
-            });
+            } catch (error) {
+                console.log(error);
+            }
         },
         /**
          * @description 倒计时
@@ -493,9 +456,6 @@ export default {
             });
         },
         ...mapActions(['change_account'])
-    },
-    components: {
-        'FooterBet': () => import('@/base/footerbet/footerbet.vue')
     }
 }
 </script>

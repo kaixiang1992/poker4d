@@ -15,27 +15,20 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import mixin from '@/mixin';
-import config from '@/utils/network.js';
 export default {
     name: 'app-header',
     computed: {
-        ...mapGetters(['account'])
+        ...mapGetters(['account','connected'])
     },
     mixins: [mixin],
+    watch: {
+        connected(val,old){
+            if(val){
+                this.login();
+            }
+        }
+    },
     methods: {
-        login() { //用户登录
-            scatter.getIdentity({
-                accounts: [config.network]
-            }).then(() => {
-                const account = scatter.identity.accounts.find(account => account.blockchain === 'eos');
-                if (!account) return;
-                this.change_account(account).then(() => {
-                    this.getEOS();
-                });
-            }).catch(e => {
-                console.log(e);
-            });
-        },
         /**
          * @description 退出登录等菜单
          */

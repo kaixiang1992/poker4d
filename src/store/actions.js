@@ -1,4 +1,7 @@
 const actions = {
+    change_connected({commit}, bool){
+        commit('change_connected', bool);
+    },
     change_account({commit},obj){
         commit('change_account', obj);
     },

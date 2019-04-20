@@ -25,22 +25,7 @@ export default {
     }
   },
   mixins: [mixin],
-  mounted() {
-    this.initaccount();
-  },
   methods: {
-    initaccount(){ //初始化用户账户
-      new Promise(r => {
-        document.addEventListener('scatterLoaded', r);
-      }).then(() => {
-        if (!scatter.identity) return;
-        const account = scatter.identity.accounts.find(account => account.blockchain === 'eos');
-        if(!account) return;
-        this.change_account(account).then(() => {
-          this.getEOS();
-        });
-      });
-    },
     /**
      * @description 退出登录等菜单
      */
@@ -53,14 +38,13 @@ export default {
         break;
         case "logout": 
         {
-          scatter.forgetIdentity().then((res) => {
-            this.show = obj.data;
+          this.$eosuntil.logout().then((res) => {
+            this.show = false;
             this.change_account(null);
             this.change_betopt({
               balance: 0 //当前余额
             });
-          }).catch((err) => {
-            console.log(err);
+            this.change_connected(false);
           });
         };
         break;
@@ -77,7 +61,7 @@ export default {
         data: false
       });
     },
-    ...mapActions(['change_account', 'change_betopt'])
+    ...mapActions(['change_account', 'change_betopt', 'change_connected'])
   },  
   components: {
     tabheader

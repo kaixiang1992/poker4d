@@ -1,4 +1,5 @@
 const state = {
+    connected: false, //TODO: 是否连接成功
     account: null, //用户信息
     betopt: {
         coin: 'EOS',
