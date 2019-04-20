@@ -286,7 +286,7 @@ export default {
                     this.bet.disabled = true;
                     this.betstatus = 2;
                     let diff = Number(currentgameinfo.reveal_time) - Number(currentgameinfo.bet_end_time);
-                    this.computedresult(currentgameinfo.card_number1, currentgameinfo.card_number2);
+                    this.computedresult(currentgameinfo.dragon_value, currentgameinfo.tiger_value);
                     if(diff > 0 ){
                         this.countdown = diff * 1000;
                     }else{
