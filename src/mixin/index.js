@@ -21,9 +21,16 @@ export default {
          * @description 获取账户EOS余额
          */
         getEOS(accountname = null, coin = null) { 
+            let minbet = 0.1;
+            if(coin.toUpperCase() == 'EOS'){
+                minbet = 0.1;
+            }else{
+                minbet = 10;
+            }
             if (!accountname) {
               this.change_betopt({
-                balance: 0
+                balance: 0,
+                minbet
               });
               return;
             }
@@ -34,11 +41,13 @@ export default {
                         let balance = Number(res.replace(coinreg, ''));
                         balance = balance <= 0 ? 0 : balance;
                         this.change_betopt({
-                            balance
+                            balance,
+                            minbet
                         });
                     }else{
                         this.change_betopt({
-                            balance: 0
+                            balance: 0,
+                            minbet
                         });
                     }
                 }).catch((err) => {
@@ -52,17 +61,20 @@ export default {
                 }}).then((res) => {
                     if(res.code == 0 && res.body){
                         this.change_betopt({
-                            balance: res.body.amount
+                            balance: res.body.amount,
+                            minbet
                         });
                     }else{
                         this.change_betopt({
-                            balance: 0
+                            balance: 0,
+                            minbet
                         });
                     }
                 }).catch((err) => {
                     console.log(err);
                     this.change_betopt({
-                        balance: 0
+                        balance: 0,
+                        minbet
                     });
                 });
             }

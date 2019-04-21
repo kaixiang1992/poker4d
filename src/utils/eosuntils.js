@@ -92,13 +92,16 @@ class eosscatteruntils {
     /**
      * @description 调用合约转账
      */
-    async transfer(from, amount, memo){
+    async transfer(from, amount, memo, tokenname){
+        const opts = { authorization:[`${this.account.name}@${this.account.authority}`] };
         return new Promise((resolve, reject) => {
-            this.eos.transfer(from, contractName, amount, memo).then(trx => {
-                resolve(trx);
-            }).catch(err => {
-                reject(err);
-            });
+            this.eos.contract(tokenname, {requiredFields:{}}).then(contract => {
+                contract.transfer(from, contractName, amount, memo, opts).then(trx => {
+                    resolve(trx);
+                }).catch(err => {
+                    reject(err);
+                })
+            })
         });
     }
     /**

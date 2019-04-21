@@ -7,7 +7,7 @@
         </div>
         <!-- 展示本轮扑克牌 -->
         <div class="poker_result">
-            <template v-if="betstatus == 1">
+            <!-- <template v-if="betstatus == 1">
                 <div class="poker_lfresult">
                     <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg" alt="">
                 </div>
@@ -17,16 +17,22 @@
             </template>
             <template v-if="betstatus == 2">
                 <div class="poker_lfresult">
-                    <!-- <span v-if="lotteryinfo.dragondesc" v-html="lotteryinfo.dragondesc"></span> -->
                     <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg pokerunopened" alt="" v-show="!lotteryinfo.dragonvalue"/>
                     <img :src="'http://www.poker4d.club/poker/'+lotteryinfo.dragonvalue+'.jpg'" class="pokerbg pokerunopened" alt="" v-if="lotteryinfo.dragonvalue"/>
                 </div>
                 <div class="poker_rtresult">
-                    <!-- <span v-if="lotteryinfo.tigerdesc" v-html="lotteryinfo.tigerdesc"></span> -->
                     <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg pokerunopened" alt="" v-show="!lotteryinfo.tigervalue"/>
                     <img :src="'http://www.poker4d.club/poker/'+lotteryinfo.tigervalue+'.jpg'" class="pokerbg pokerunopened" alt="" v-if="lotteryinfo.tigervalue"/>
                 </div>
-            </template>
+            </template> -->
+            <div class="poker_lfresult">
+                <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg pokerunopened" alt="" v-show="!lotteryinfo.dragonvalue"/>
+                <img :src="'http://www.poker4d.club/poker/'+lotteryinfo.dragonvalue+'.jpg'" class="pokerbg pokerunopened" alt="" v-if="lotteryinfo.dragonvalue"/>
+            </div>
+            <div class="poker_rtresult">
+                <img src="http://www.poker4d.club/poker/0.jpg" class="pokerbg pokerunopened" alt="" v-show="!lotteryinfo.tigervalue"/>
+                <img :src="'http://www.poker4d.club/poker/'+lotteryinfo.tigervalue+'.jpg'" class="pokerbg pokerunopened" alt="" v-if="lotteryinfo.tigervalue"/>
+            </div>
         </div>
         <!-- TODO: 下注币种 -->
         <div class="app_header_coinbox">
@@ -47,7 +53,7 @@
                         <span v-if="betstatus == 1">下注倒计时：</span>
                         <span v-if="betstatus == 2">开奖倒计时：</span>
                         <vac ref="cutdown" tag="span" :left-time="countdown" v-if="countdown"
-                        @onFinish="(vac) => finish(vac)">
+                        @onFinish="(vac) => finish(vac)" @onProcess="(vac) => process(vac)">
                             <span slot="process" slot-scope="{ timeObj }" class="countdown">{{ timeObj.h }}:{{ timeObj.m }}:{{ timeObj.s }}s</span>
                         </vac>
                     </div>
@@ -172,7 +178,7 @@ export default {
             }
         },
         lotteryinfotext(){
-            if(this.betstatus == 1){
+            if(this.betstatus == 1 && this.lotteryinfo.dragonvalue == '' && this.lotteryinfo.tigervalue == ''){
                 if(this.betId){
                     return `第${this.betId}轮下注中...`;
                 }else{
@@ -219,7 +225,7 @@ export default {
             cardMapArray: null, //TODO: 扑克数组
             bet: {
                 amount: 1,
-                typeenum: 1,
+                typeenum: 6,
                 randomstr: null,
                 disabled: false
             },
@@ -312,8 +318,8 @@ export default {
                     this.$toast('请输入投注金额');
                     return
                 }
-                if(Number(this.bet.amount) < 0.1){
-                    this.$toast(`投注金额>=0.1${this.betopt.coin}`);
+                if(Number(this.bet.amount) < this.betopt.minbet){
+                    this.$toast(`投注金额>=${this.betopt.minbet}${this.betopt.coin}`);
                     return
                 }
                 if(Number(this.bet.amount) > Number(this.betopt.balance)){
@@ -327,10 +333,16 @@ export default {
                     quantity: `${quantity} ${this.betopt.coin}`,
                     memo: `gamebet:${this.betId}:${this.bet.typeenum}:${this.bet.randomstr}` 
                 }
+                if(this.betopt.coin == 'EOS'){
+                    betopt.tokenname = 'eosio.token'
+                }
+                if(this.betopt.coin == 'GDT'){
+                    betopt.tokenname = 'poker4dtoken'
+                }
                 console.log('下注参数.....');
                 console.log(betopt);
                 this.bet.disabled = true;
-                this.$eosuntil.transfer(betopt.from, betopt.quantity, betopt.memo).then((res) => {
+                this.$eosuntil.transfer(betopt.from, betopt.quantity, betopt.memo, betopt.tokenname).then((res) => {
                     if(res.broadcast){
                         this.getBetresult();
                         this.getEOS(this.account.name, this.betopt.coin);
@@ -363,7 +375,16 @@ export default {
             }
         },
         /**
-         * @description 倒计时
+         * @description 倒计时进行中
+         */
+        process(vac){
+            if(this.betstatus == 1 && (this.lotteryinfo.dragonvalue || this.lotteryinfo.tigervalue) && vac.runTimes >= 10){
+                this.resetlotteryinfo();
+                this.getnextgameid();
+            }
+        },
+        /**
+         * @description 倒计时结束
          */
         finish(vac){
             if(this.betstatus == 1){ //TODO: 投注倒计时结束\
@@ -375,7 +396,7 @@ export default {
                 }, 200);
             }else{
                 this.bet.randomstr = randomID();
-                this.resetlotteryinfo();
+                // this.getnextgameid();
                 this.countdown = null;
                 this.betstatus = null;
             }
@@ -442,14 +463,14 @@ export default {
         resetlotteryinfo(){
             this.lotteryinfo = Object.assign(this.lotteryinfo, {
                 result: '', 
-                resultstatus: 0, 
-                dragonvalue: '',
+                resultstatus: 0,
                 dragondesc: '',
                 dragonColor: '',
+                dragonvalue: '',
                 dragonNumbertype: '',
-                tigervalue: '',
                 tigerdesc: '',
                 tigerColor: '',
+                tigervalue: '',
                 tigerNumbertype: ''
             });
         },

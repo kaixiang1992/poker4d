@@ -3,6 +3,7 @@ const state = {
     account: null, //用户信息
     betopt: {
         coin: 'EOS',
+        minbet: 0.1,
         balance: 0, //当前余额
         precision: 4 //精度
     }
