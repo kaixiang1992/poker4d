@@ -24,3 +24,6 @@ https://developers.eos.io/eosio-nodeos/reference
 
 # 倒计时插件
 https://vac.js.org/
+
+# websocket推送文档
+http://note.youdao.com/noteshare?id=4ebd642096e582b47f4c66589d6edfcc

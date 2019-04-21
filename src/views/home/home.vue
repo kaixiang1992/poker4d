@@ -130,6 +130,8 @@ import { mapGetters, mapActions } from "vuex";
 import { numToString, fixed, changeamount, randomID, changeDecimalBuZero } from '@/utils/math.js';
 import card_map from '@/utils/config';
 import mixin from '@/mixin';
+import socket from "@/utils/socket.js";
+import { constants } from 'crypto';
 export default {
     name: 'home',
     computed: {
@@ -197,6 +199,7 @@ export default {
     },
     data () {
         return {
+            socket: null, //TODO: socket对象
             betId: null, // TODO: 当前下注betID    
             betstatus: null, //TODO: 1下注，2开奖倒计时
             countdown: null, //TODO: 倒计时
@@ -224,6 +227,22 @@ export default {
     created () {
         this.cardMapArray = Array.from(card_map);
         this.bet.randomstr = randomID();
+    },
+    mounted(){
+        // TODO: 初始化websocket连接
+        this.socket = new socket('wss://www.poker4d.club:10086/poker4d/webSocket');
+        this.socket.doOpen();
+        this.socket.on('open',() => {
+            // TODO: 页面初始化后请求币种信息
+            this.socket.send(JSON.stringify({
+                methodName: "addMsgOrder", 
+                body:{
+                    userName: ""
+                }}
+            ));
+        });
+        this.socket.on('message', this.onMessage.bind(this));
+        this.socket.on('close', this.onClose.bind(this));
     },
     mixins: [mixin],
     methods: {
@@ -454,6 +473,18 @@ export default {
                 tigerColor: '',
                 tigerNumbertype: ''
             });
+        },
+        /**
+         * @description 接收websocket消息
+         */
+        onMessage(e){
+            console.log(e);
+        },
+        /**
+         * @deprecated 关闭websocket 
+         */
+        onClose(e){
+            console.log(e);
         },
         ...mapActions(['change_account'])
     }
