@@ -10,6 +10,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "eosjs": "^16.0.9",
     "scatterjs-core": "^2.7.17",
     "scatterjs-plugin-eosjs": "^1.5.1",

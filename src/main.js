@@ -2,6 +2,7 @@ import Vue from 'vue';
 import App from './App';
 import router from './router';
 import store from './store';
+import Axios from "@/utils/axiosConfig.js";
 import eosscatteruntils from './utils/eosuntils';
 import vueAwesomeCountdown from 'vue-awesome-countdown';
 
@@ -19,6 +20,7 @@ until.init().then((res) => {
   }
 });
 Vue.prototype.$eosuntil = until;
+Vue.prototype.$axios = Axios;
 
 /* eslint-disable no-new */
 new Vue({

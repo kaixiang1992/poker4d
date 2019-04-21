@@ -27,23 +27,45 @@ export default {
               });
               return;
             }
-            this.$eosuntil.getAccount(accountname).then((res) => {
-                if(res){
-                    let coinreg = new RegExp(`\\s${coin.toUpperCase()}`);
-                    let balance = Number(res.replace(coinreg, ''));
-                    balance = balance <= 0 ? 0 : balance;
-                    this.change_betopt({
-                        balance
-                    });
-                }else{
+            if(coin.toUpperCase() == 'EOS'){
+                this.$eosuntil.getAccount(accountname).then((res) => {
+                    if(res){
+                        let coinreg = new RegExp(`\\s${coin.toUpperCase()}`);
+                        let balance = Number(res.replace(coinreg, ''));
+                        balance = balance <= 0 ? 0 : balance;
+                        this.change_betopt({
+                            balance
+                        });
+                    }else{
+                        this.change_betopt({
+                            balance: 0
+                        });
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                });
+            }else{
+                this.$axios.get('/dtgame/getBalance', {params: {
+                    contractName: 'poker4dtoken',
+                    userName: accountname,
+                    assetName: coin.toUpperCase()
+                }}).then((res) => {
+                    if(res.code == 0 && res.body){
+                        this.change_betopt({
+                            balance: res.body.amount
+                        });
+                    }else{
+                        this.change_betopt({
+                            balance: 0
+                        });
+                    }
+                }).catch((err) => {
+                    console.log(err);
                     this.change_betopt({
                         balance: 0
                     });
-                }
-            }).catch((err) => {
-                console.log(err);
-            });
-
+                });
+            }
         },
         ...mapActions(['change_betopt', 'change_account'])
     }

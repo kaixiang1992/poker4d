@@ -28,6 +28,28 @@
         justify-content: center
         &:first-child
             border-right: 1px solid #777
+.app_header_coinbox
+    width: 100%
+    padding: 0.32rem 0.37rem 0
+    margin-bottom: 0.53rem;
+    justify-content: space-between
+.app_header_coinbox, .coin_item
+    display: flex
+    flex-direction: row
+    align-items: center
+.app_header_coinbox .coin_item
+    width: 1.84rem
+    height: 0.51rem
+    padding: 0 .25rem
+    background-color: #262335
+    border-radius: 0.25rem
+    white-space: nowrap
+    justify-content: center
+    &.active
+        background-color: #2c3dd9
+    span 
+        color: #fff
+        font-size: 0.32rem
 .bet
     margin: 0.52rem 0px
 .bet_amount
