@@ -35,4 +35,27 @@ const card_map = function(){
     return map;
 }
 
+export const betTypedesc = [
+    { resultType: 1, resultzhdesc: '龙赢', resulttype: 'dragon', resultodds: 1},
+    { resultType: 6, resultzhdesc: '和', resulttype: 'same', resultodds: 8},
+    { resultType: 7, resultzhdesc: '虎赢', resulttype: 'tiger', resultodds: 1},
+    { resultType: 3, resultzhdesc: '龙单', resulttype: 'dragon', resultodds: 0.75},
+    { resultType: 2, resultzhdesc: '龙双', resulttype: 'dragon', resultodds: 1.05},
+    { resultType: 4, resultzhdesc: '龙黑', resulttype: 'dragon', resultodds: 0.9},
+    { resultType: 5, resultzhdesc: '龙红', resulttype: 'dragon', resultodds: 0.9},
+    { resultType: 8, resultzhdesc: '虎双', resulttype: 'tiger', resultodds: 1.05},
+    { resultType: 9, resultzhdesc: '虎单', resulttype: 'tiger', resultodds: 0.75},
+    { resultType: 11, resultzhdesc: '虎红', resulttype: 'tiger', resultodds: 0.9},
+    { resultType: 10, resultzhdesc: '虎黑', resulttype: 'tiger', resultodds: 0.9}
+];
+
+export function findbetdescbytype(id){
+    const desc = betTypedesc.find( item => item.resultType == id);
+    if(desc){
+        return desc;
+    }else{
+        return {};
+    }
+}
+
 export default card_map();

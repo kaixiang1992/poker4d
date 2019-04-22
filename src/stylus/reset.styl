@@ -60,6 +60,10 @@ a,a:link,a:visited,a:hover
 	min-height: 100vh
 	padding-top: 1.07rem
 	background-color: #343047
+	background-image: url('/static/image/pokerbg.png')
+	background-repeat: no-repeat
+	background-position: top center
+	background-size: cover
 /*全局动画*/
 @keyframes  bigAssButtonPulse {
 	from { 
@@ -89,6 +93,16 @@ a,a:link,a:visited,a:hover
 		box-shadow: 0 0 9px #333 
 	}
 }
+@keyframes fadeInDown {
+  from {
+    opacity: 0.8
+    transform: translate3d(0, 0px, 0)
+  }
+  to {
+    opacity: 1
+    transform: none
+  }
+}
 .bigAssButtonPulse
 	animation-name: bigAssButtonPulse
 	animation-duration: 1s
@@ -97,4 +111,49 @@ a,a:link,a:visited,a:hover
 	animation-name: redPulse
 	animation-duration: 1s
 	animation-iteration-count: infinite
+.list-enter
+  	transform: translateY(0px)
+.list-enter-active 
+	animation-name: fadeInDown
+	animation-duration: 0.5s
+	animation-fill-mode: both
 /*全局动画结束*/
+/*全局记录样式*/
+.betrecord
+	display: flex
+	flex-direction row
+	align-items center 
+	justify-content: space-between
+	width: 100%
+	height: 1.17rem
+	font-size: 0.35rem
+	color: #fff
+	background-color: rgba(38,35,53,0.8)
+	&.same
+		background-color: rgba(38,35,53,0.8)
+	&.dragon
+		background-color: rgba(19,29,128,0.8)
+	&.tiger
+		background-color: rgba(255,173,43,0.7)
+	.betrecord-icon
+		width: 20%
+		text-align: center
+		.iconlong
+			color #f5b116
+		.iconArtboard
+			color rgb(38,35,53)
+		.iconchiping1
+			color: #fff
+	.betrecord-player
+		width: 30%
+		text-align center
+		overflow hidden
+		text-overflow ellipsis
+		white-space nowrap
+	.betrecord-zhdesc
+		width 20%
+		text-align center
+	.betrecord-amount
+		width: 30%
+		text-align center
+/*全局记录样式结束*/

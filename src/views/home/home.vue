@@ -138,12 +138,26 @@
                 <span class="user_banlance">余额：<em v-html="betopt.balance"></em><em>{{betopt.coin}}</em></span>
             </button>
         </div>
+        <!-- TODO: 投注记录 -->
+        <van-tabs v-model="recordopt.active" @change="changetabs" animated background="rgba(75,70,96,0.7)" color="#ffad2b" title-active-color="#fff" title-inactive-color="#fff">
+            <van-tab title="本轮下注">
+                <transition-group name="list" tag="div">
+                    <betrecord v-for="(item,index) in recordopt.allrecord" :class="item.resulttype" :key="item.id" :data="item"></betrecord>
+                </transition-group>
+            </van-tab>
+            <van-tab title="我的记录">
+                <transition-group name="list" tag="div">
+                    <betrecord v-for="(item,index) in recordopt.myrecord" :class="item.resulttype" :key="item.id" :data="item"></betrecord>
+                </transition-group>
+            </van-tab>
+        </van-tabs>
     </section>
 </template>
 <script>
 import { mapGetters, mapActions } from "vuex";
 import { numToString, fixed, changeamount, randomID, changeDecimalBuZero } from '@/utils/math.js';
 import card_map from '@/utils/config';
+import { findbetdescbytype } from '@/utils/config';
 import mixin from '@/mixin';
 import socket from "@/utils/socket.js";
 import { constants } from 'crypto';
@@ -186,8 +200,8 @@ export default {
                 }
             }else{
                 let str = '';
-                if(this.betId){
-                    str +=`第${this.betId}轮，`;
+                if(this.lotteryinfo.gameId){
+                    str +=`第${this.lotteryinfo.gameId}轮，`;
                 }
                 if(this.lotteryinfo.resultstatus == 1){
                     str +=`龙胜，`;
@@ -209,13 +223,6 @@ export default {
         },
         ...mapGetters(['betopt','account','coin'])
     },
-    watch: {
-        account(val,old){
-            if(val){
-                this.getnextgameid();
-            }
-        }  
-    },
     data () {
         return {
             socket: null, //TODO: socket对象
@@ -224,12 +231,13 @@ export default {
             countdown: null, //TODO: 倒计时
             cardMapArray: null, //TODO: 扑克数组
             bet: {
-                amount: 1,
+                amount: 2,
                 typeenum: 6,
                 randomstr: null,
                 disabled: false
             },
             lotteryinfo: { //TODO: 开奖信息
+                gameId: '',
                 result: '', //TODO: 开奖结果
                 resultstatus: 0, //TODO: 开奖结果状态码
                 dragonvalue: '', //TODO: 龙牌value
@@ -240,6 +248,12 @@ export default {
                 tigerdesc: '', //TODO: 虎牌描述
                 tigerColor: '', //TODO: 虎牌颜色
                 tigerNumbertype: '' //TODO: 虎牌单双
+            },
+            recordopt: {
+                active: 0,
+                allrecord: [],
+                myrecord: [],
+                winninglist: []
             }
         }
     },
@@ -286,27 +300,6 @@ export default {
             this.bet.typeenum = type;
         },
         /**
-         * @description 获取当前下注ID
-         */
-        async getnextgameid(){
-            try {
-                let res = await this.$eosuntil.getTableRows({ 
-                    "table":"vardic", 
-                    "json": true
-                });
-                if(res.rows && res.rows.length){
-                    let findbetiditem = res.rows.find( item => item.id == 6);
-                    if(findbetiditem){
-                        this.betId = parseInt(findbetiditem.value - 1);
-                    }else{
-                        this.betId = 1;
-                    }
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        /**
          * @description 下注功能
          */
         doAction(){ //下注
@@ -344,6 +337,10 @@ export default {
                 this.bet.disabled = true;
                 this.$eosuntil.transfer(betopt.from, betopt.quantity, betopt.memo, betopt.tokenname).then((res) => {
                     if(res.broadcast){
+                        if(this.socket){
+                            this.socket.send(JSON.stringify({"methodName":"userBet", "body":{}}));
+                        }
+                        this.$toast.success('投注成功');
                         this.getBetresult();
                         this.getEOS(this.account.name, this.betopt.coin);
                     }else{
@@ -380,7 +377,6 @@ export default {
         process(vac){
             if(this.betstatus == 1 && (this.lotteryinfo.dragonvalue || this.lotteryinfo.tigervalue) && vac.runTimes >= 10){
                 this.resetlotteryinfo();
-                this.getnextgameid();
             }
         },
         /**
@@ -396,7 +392,6 @@ export default {
                 }, 200);
             }else{
                 this.bet.randomstr = randomID();
-                // this.getnextgameid();
                 this.countdown = null;
                 this.betstatus = null;
             }
@@ -462,6 +457,7 @@ export default {
          */
         resetlotteryinfo(){
             this.lotteryinfo = Object.assign(this.lotteryinfo, {
+                gameId: '',
                 result: '', 
                 resultstatus: 0,
                 dragondesc: '',
@@ -480,19 +476,51 @@ export default {
         onMessage(e){
             let obj = e;
             switch (obj.msgType) {
-                case 'BET': //TODO: 下注阶段
+                case 'BET': //TODO: 下注ID
                 {
                     if(this.betstatus != 2 && !this.countdown){
                         this.bet.disabled = false;
-                        let diff = parseInt(obj.body) * 1000;
+                        let diff = parseInt(obj.body.t) * 1000;
                         this.countdown = diff;
                         this.betstatus = 1;
+                        this.betId = obj.body.gId;
                     }
                 };
                 break;
-                case 'LF':
+                case 'LF': //TODO: 开奖结果
                 {
+                    this.lotteryinfo.gameId = obj.body.gameId;
                     this.computedresult(obj.body.dragonValue, obj.body.tigerValue);
+                };
+                break;
+                case 'BL': //TODO: 下注记录
+                {
+                    obj.body.forEach(item => {
+                        if(item){
+                            item = Object.assign(item, findbetdescbytype(item.betType));
+                        }
+                    });
+                    this.recordopt.allrecord = [...obj.body, ...this.recordopt.allrecord];
+                    if(this.account){
+                        const myrecord = obj.body.filter( item => item.player === this.account.name);
+                        if(myrecord && myrecord.length){
+                            this.recordopt.myrecord = [...myrecord, this.recordopt.myrecord];
+                        }
+                    }else{
+                        this.recordopt.myrecord = [];
+                    }
+                };
+                break;
+                // msgType: "BRL"
+                /*
+                betAssetName: "GDT"
+                player: "kaixiangwang"
+                winAssetAmount: 50
+                */
+                case 'BRL':  //TODO: 获胜用户
+                {
+                    console.log(obj.body);
+                    this.recordopt.winninglist = obj.body;
                 };
                 break;
                 default:
@@ -515,13 +543,28 @@ export default {
             this.change_betopt({
                 coin: coin.toUpperCase()
             });
+            if(coin.toUpperCase() == 'EOS'){
+                this.bet.amount = 2;
+            }else{
+                this.bet.amount = 100;
+            }
             if(this.account){
                 this.getEOS(this.account.name, coin);
             }else{
                 this.getEOS(null, coin);
             }
         },
+        /**
+         * @description 切换tab标签页
+         */
+        changetabs(index, title){
+            console.log(index);
+            console.log(title);
+        },
         ...mapActions(['change_account','change_betopt'])
+    },
+    components: {
+        'betrecord': () => import('@/base/betrecord/betrecord.vue')
     }
 }
 </script>
