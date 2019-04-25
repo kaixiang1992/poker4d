@@ -5,6 +5,17 @@
         <div class="notice-box">
             <van-notice-bar color="#ffd926" :text="lotteryinfotext" left-icon="volume-o" />
         </div>
+        <!-- TODO: 开奖结果展示 -->
+        <div class="poker_winninglist" v-if="recordopt.winninglist.length">
+            <van-swipe :autoplay="2000" :show-indicators="false" vertical>
+                <van-swipe-item v-for="(item,index) in recordopt.winninglist" :key="index">
+                    <div class="winninglist-item">
+                        <i class="icon iconfont iconzhongjiangliebiao"></i>
+                        <span>恭喜用户{{item.player}}赢得 {{item.winAssetAmount}} {{item.betAssetName}}</span>
+                    </div>
+                </van-swipe-item>
+            </van-swipe>
+        </div>
         <!-- 展示本轮扑克牌 -->
         <div class="poker_result">
             <!-- <template v-if="betstatus == 1">
@@ -139,8 +150,8 @@
             </button>
         </div>
         <!-- TODO: 投注记录 -->
-        <van-tabs v-model="recordopt.active" @change="changetabs" animated background="rgba(75,70,96,0.7)" color="#ffad2b" title-active-color="#fff" title-inactive-color="#fff">
-            <van-tab title="本轮下注">
+        <van-tabs v-model="recordopt.active" animated background="rgba(75,70,96,0.7)" color="#ffad2b" title-active-color="#fff" title-inactive-color="#fff">
+            <van-tab title="最新记录">
                 <transition-group name="list" tag="div">
                     <betrecord v-for="(item,index) in recordopt.allrecord" :class="item.resulttype" :key="item.id" :data="item"></betrecord>
                 </transition-group>
@@ -364,8 +375,6 @@ export default {
                     "limit": 50,
                     "json": true
                 });
-                console.log('获取投注结果....');
-                console.log(res);
                 this.bet.disabled = false;
             } catch (error) {
                 console.log(error);
@@ -504,22 +513,15 @@ export default {
                     if(this.account){
                         const myrecord = obj.body.filter( item => item.player === this.account.name);
                         if(myrecord && myrecord.length){
-                            this.recordopt.myrecord = [...myrecord, this.recordopt.myrecord];
+                            this.recordopt.myrecord = this.recordopt.myrecord.concat(myrecord);
                         }
                     }else{
                         this.recordopt.myrecord = [];
                     }
                 };
                 break;
-                // msgType: "BRL"
-                /*
-                betAssetName: "GDT"
-                player: "kaixiangwang"
-                winAssetAmount: 50
-                */
                 case 'BRL':  //TODO: 获胜用户
                 {
-                    console.log(obj.body);
                     this.recordopt.winninglist = obj.body;
                 };
                 break;
@@ -553,13 +555,6 @@ export default {
             }else{
                 this.getEOS(null, coin);
             }
-        },
-        /**
-         * @description 切换tab标签页
-         */
-        changetabs(index, title){
-            console.log(index);
-            console.log(title);
         },
         ...mapActions(['change_account','change_betopt'])
     },
